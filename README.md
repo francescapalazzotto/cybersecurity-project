@@ -55,23 +55,7 @@ This project will explicitly address:
 
 ## Authors
 
-* [Il tuo Nome e Cognome]
-* [Il tuo Numero di Matricola]
-* [Corso di Studi Atteso, es. "Data, Algorithms and Machine Intelligence"]
+* Francesca Maria Palazzotto
+* LM-18 Data, Algorithms and Machine Intelligence
 
 ---
-
-### **Prossimi Passi:**
-
-1. **Copia il `README.md`:** Incollalo nella tua repository.
-2. **Installazione Iniziale di Python:** Se non l'hai già fatto, assicurati di avere Python installato. Useremo la libreria `cryptography`. Puoi installarla con pip:
-
-    ```bash
-    pip install cryptography
-    ```
-
-3. **Conferma il Linguaggio:** Hai già confermato Python, ottimo!
-
-Ora che hai il `README` e la repo, possiamo procedere con il prossimo passo cruciale: la **ricerca mirata dei paper** e la **definizione delle modalità di AE da implementare**. Questo ci darà la base teorica e le linee guida per iniziare a scrivere il codice.
-
-Sei pronta a tuffarti nella ricerca?
