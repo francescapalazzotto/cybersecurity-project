@@ -16,13 +16,15 @@ from cryptography.hazmat.primitives import padding # Importante: importa il modu
 SALT_BYTES_LENGTH = 16      # Lunghezza standard per il salt di PBKDF2
 KEY_LENGTH_AES_256 = 32     # Lunghezza della chiave AES a 256 bit (in bytes)
 KDF_ITERATIONS = 100000     # Numero di iterazioni per PBKDF2 (raccomandato 100.000+)
-BLOCK_SIZE_BITS = 128       # Dimensione del blocco per AES in bit (128 bit = 16 byte) - Usato per il padding PKCS7
 
 # Specifiche per AES-CBC
 IV_BYTES_LENGTH_CBC = 16    # IV per AES-CBC è sempre 16 byte (dimensione del blocco AES)
+BLOCK_SIZE_BITS = 128       # Dimensione del blocco per AES in bit (128 bit = 16 byte) - Usato per il padding PKCS7
 
 # Specifiche per HMAC-SHA256
 HMAC_TAG_LENGTH_SHA256 = 32 # HMAC-SHA256 produce un output di 32 byte (256 bit)
+
+OUTPUT_DIR = "docs"         # Cartella di output predefinita per i file
 
 #*
 #* KEY MANAGEMENT FUNCTIONS
@@ -68,20 +70,21 @@ def derive_keys_from_password_etm(password: str, salt: bytes) -> tuple[bytes, by
 
 def encrypt_file_EtM(
     file_path: str,
-    output_file_path: str,
     password: str,
     associated_data: bytes = None, # type: ignore
-) -> None:
+) -> str:
     '''
     Funzione che cripta un file utilizzando AES-CBC e autentica con HMAC-SHA256 (EtM).
     Il salt, IV e HMAC Tag vengono generati casualmente e salvati all'inizio del file criptato.
 
     Parametri:
         - file_path (str): path del file da criptare (plaintext).
-        - output_file_path (str): path dove salvare il file criptato.
         - password (str): password dell'utente da cui verranno derivate le chiavi.
         - associated_data (bytes): default None - dati aggiuntivi associati
           al file che non vengono criptati ma solamente autenticati.
+    
+    Ritorna:
+        - output_file_path (str): path del file generato dalla criptazione.
     '''
     # 1. Genera un nuovo salt casuale per questa operazione
     salt = os.urandom(SALT_BYTES_LENGTH)
@@ -99,7 +102,7 @@ def encrypt_file_EtM(
     #* Passo di Cifratura (AES-CBC)
     # Applica il padding al plaintext prima della cifratura.
     # PKCS7 è lo schema di padding standard per AES.
-    padder = padding.PKCS7(BLOCK_SIZE_BITS).padder()
+    padder = padding.PKCS7(BLOCK_SIZE_BITS).padder() # Corretto: usa BLOCK_SIZE_BITS (in bit)
     padded_plaintext = padder.update(plaintext) + padder.finalize()
 
     # Inizializza il cifratore con AES e modalità CBC
@@ -124,7 +127,12 @@ def encrypt_file_EtM(
     h.update(ciphertext) # Autentica il ciphertext
     hmac_tag = h.finalize()
 
-    # 5. Salvataggio nel file: [SALT] [IV] [HMAC_TAG] [CIPHERTEXT]
+    # 5. Costruisci il percorso del file di output
+    original_filename = os.path.basename(file_path)
+    output_filename = f"{os.path.splitext(original_filename)[0]}.enc" # mantiene il nome base, cambia estensione
+    output_file_path = os.path.join(OUTPUT_DIR, output_filename)
+
+    # 6. Salvataggio nel file: [SALT] [IV] [HMAC_TAG] [CIPHERTEXT]
     with open(output_file_path, 'wb') as output_file:
         output_file.write(salt)
         output_file.write(iv)
@@ -132,13 +140,13 @@ def encrypt_file_EtM(
         output_file.write(ciphertext) # Questo è il ciphertext con padding
     
     print(f"File '{file_path}' criptato (EtM) e salvato in '{output_file_path}'")
+    return output_file_path # Ritorna il percorso del file criptato
 
 def decrypt_file_EtM(
     file_path: str,
-    output_file_path: str,
     password: str,
     associated_data: bytes = None, # type: ignore
-) -> None:
+) -> str:
     '''
     Funzione che decripta un file criptato con AES-CBC e verifica l'autenticità 
     con HMAC-SHA256 (EtM).
@@ -146,10 +154,12 @@ def decrypt_file_EtM(
 
     Parametri:
         - file_path (str): path del file criptato.
-        - output_file_path (str): path dove salvare il file decriptato.
         - password (str): password dell'utente per derivare le chiavi.
         - associated_data (bytes): default None - dati aggiuntivi associati
           al file (devono corrispondere a quelli usati in criptazione).
+    
+    Ritorna:
+        - output_file_path (str): ritorna il percorso del file decriptato.
     '''
     with open(file_path, 'rb') as file:
         # 1. Leggi il salt dal file
@@ -203,12 +213,18 @@ def decrypt_file_EtM(
     padded_plaintext = decryptor.update(ciphertext) + decryptor.finalize()
 
     # Rimuovi il padding dal plaintext decifrato
-    unpadder = padding.PKCS7(BLOCK_SIZE_BITS).unpadder()
+    unpadder = padding.PKCS7(BLOCK_SIZE_BITS).unpadder() # Corretto: usa BLOCK_SIZE_BITS (in bit)
     plaintext = unpadder.update(padded_plaintext) + unpadder.finalize()
+
+    # Costruisci il percorso del file di output per il decriptato
+    original_encrypted_filename = os.path.basename(file_path)
+    decrypted_filename = f"{os.path.splitext(original_encrypted_filename)[0]}.txt" # Potresti voler recuperare l'estensione originale dall'AAD
+    output_file_path = os.path.join(OUTPUT_DIR, decrypted_filename)
 
     with open(output_file_path, 'wb') as f:
         f.write(plaintext)
     print(f"File '{file_path}' decriptato (EtM) e salvato in '{output_file_path}'")
+    return output_file_path # Ritorna il percorso del file decriptato
 
 #*
 #* EXAMPLE USAGE
@@ -216,11 +232,11 @@ def decrypt_file_EtM(
 
 if __name__ == '__main__':
     # Creazione della directory 'docs' se non esiste
-    if not os.path.exists('docs'):
-        os.makedirs('docs')
+    if not os.path.exists(OUTPUT_DIR): # Usiamo la costante OUTPUT_DIR
+        os.makedirs(OUTPUT_DIR)
 
     # Creazione di un file di input di esempio per EtM
-    input_filename_etm = "docs/EtM_input.txt"
+    input_filename_etm = os.path.join(OUTPUT_DIR, "EtM_input.txt") # Usa os.path.join
     with open(input_filename_etm, "w") as f:
         f.write("Questo è il contenuto del mio documento sensibile per il test EtM.\n")
         f.write("Queste informazioni devono rimanere confidenziali e integre.\n")
@@ -233,15 +249,12 @@ if __name__ == '__main__':
     # Associated Data per l'esempio (deve essere identico in criptazione e decriptazione)
     file_metadata_aad_etm = b"file_type:etm_document_version_1.0;original_name:EtM_input.txt"
 
-    output_encrypted_filename_etm = "docs/EtM_output_encrypt.enc"
-    output_decrypted_filename_etm = "docs/EtM_output_decrypt.txt"
-
     print('\n\n******* INIZIO CRIPTAGGIO Encrypt-then-MAC (EtM) *******')
     print()
+    encrypted_file_path_etm = None # Variabile per memorizzare il path generato
     try:
-        encrypt_file_EtM(
+        encrypted_file_path_etm = encrypt_file_EtM(
             file_path=input_filename_etm,
-            output_file_path=output_encrypted_filename_etm,
             password=user_password_etm,
             associated_data=file_metadata_aad_etm
         )
@@ -249,79 +262,89 @@ if __name__ == '__main__':
     except Exception as e:
         print(f"Criptaggio EtM fallito: {e}.")
 
-    print('\n******* INIZIO DECRIPTAGGIO Encrypt-then-MAC (EtM) *******')
-    print()
-    try:
-        decrypt_file_EtM(
-            file_path=output_encrypted_filename_etm,
-            output_file_path=output_decrypted_filename_etm,
-            password=user_password_etm,
-            associated_data=file_metadata_aad_etm
-        )
-        print("Decriptaggio EtM riuscito.")
-    except InvalidTag:
-        print("Decriptaggio EtM fallito: tag non valido (file manomesso o password/AAD errata).")
-    except Exception as e:
-        print(f"Decriptaggio EtM fallito: {e}.")
+    if encrypted_file_path_etm: # Esegui il decriptaggio solo se il criptaggio è riuscito
+        print('\n******* INIZIO DECRIPTAGGIO Encrypt-then-MAC (EtM) *******')
+        print()
+        try:
+            decrypted_file_path_etm = decrypt_file_EtM(
+                file_path=encrypted_file_path_etm, # Usa il path restituito dal criptaggio
+                password=user_password_etm,
+                associated_data=file_metadata_aad_etm
+            )
+            print("Decriptaggio EtM riuscito.")
+        except InvalidTag:
+            print("Decriptaggio EtM fallito: tag non valido (file manomesso o password/AAD errata).")
+        except Exception as e:
+            print(f"Decriptaggio EtM fallito: {e}.")
+    else:
+        print("Decriptaggio EtM saltato a causa di errori nel criptaggio.")
     
     print('\n******* FINE ESEMPIO EtM *******')
 
     #* Test con password sbagliata per la decrittografia EtM
     print('\n\n******* TEST: DECRIPTAGGIO EtM CON PASSWORD ERRATA *******')
     wrong_password_etm_test = "PasswordCompletamenteSbagliata"
-    try:
-        decrypt_file_EtM(
-            file_path=output_encrypted_filename_etm,
-            output_file_path="docs/EtM_output_decrypt_wrong_password.txt",
-            password=wrong_password_etm_test, # Password errata
-            associated_data=file_metadata_aad_etm
-        )
-    except InvalidTag:
-        print("TEST SUPERATO: Decriptaggio EtM con password errata ha correttamente sollevato InvalidTag (dovuto a chiave MAC errata).")
-    except Exception as e:
-        print(f"TEST FALLITO: Decriptaggio EtM con password errata ha sollevato un errore inatteso: {e}.")
+    if encrypted_file_path_etm: # Esegui il test solo se il file criptato esiste
+        try:
+            # Per i test falliti, non è necessario salvare l'output decifrato,
+            # dato che ci aspettiamo un errore. La funzione decripta comunque.
+            decrypt_file_EtM(
+                file_path=encrypted_file_path_etm,
+                password=wrong_password_etm_test, # Password errata
+                associated_data=file_metadata_aad_etm
+            )
+        except InvalidTag:
+            print("TEST SUPERATO: Decriptaggio EtM con password errata ha correttamente sollevato InvalidTag (dovuto a chiave MAC errata).")
+        except Exception as e:
+            print(f"TEST FALLITO: Decriptaggio EtM con password errata ha sollevato un errore inatteso: {e}.")
+    else:
+        print("TEST SALTATO: File criptato non disponibile per il test della password errata.")
 
     #* Test con AAD sbagliato per la decrittografia EtM
     print('\n******* TEST: DECRIPTAGGIO EtM CON AAD ERRATO *******')
     wrong_aad_etm_test = b"wrong_aad_for_etm_document_mismatch"
-    try:
-        decrypt_file_EtM(
-            file_path=output_encrypted_filename_etm,
-            output_file_path="docs/EtM_output_decrypt_wrong_aad.txt",
-            password=user_password_etm,
-            associated_data=wrong_aad_etm_test # AAD errato
-        )
-    except InvalidTag:
-        print("TEST SUPERATO: Decriptaggio EtM con AAD errato ha correttamente sollevato InvalidTag.")
-    except Exception as e:
-        print(f"TEST FALLITO: Decriptaggio EtM con AAD errato ha sollevato un errore inatteso: {e}.")
+    if encrypted_file_path_etm: # Esegui il test solo se il file criptato esiste
+        try:
+            decrypt_file_EtM(
+                file_path=encrypted_file_path_etm,
+                password=user_password_etm,
+                associated_data=wrong_aad_etm_test # AAD errato
+            )
+        except InvalidTag:
+            print("TEST SUPERATO: Decriptaggio EtM con AAD errato ha correttamente sollevato InvalidTag.")
+        except Exception as e:
+            print(f"TEST FALLITO: Decriptaggio EtM con AAD errato ha sollevato un errore inatteso: {e}.")
+    else:
+        print("TEST SALTATO: File criptato non disponibile per il test dell'AAD errato.")
 
     #* Test con file criptato manomesso (simula modifica del ciphertext) 
     print('\n******* TEST: DECRIPTAGGIO EtM CON FILE MANOMESSO (CIPHERTEXT MODIFICATO) *******')
-    temp_tampered_file = "docs/EtM_output_tampered.enc"
-    try:
-        with open(output_encrypted_filename_etm, 'rb') as f_orig:
-            original_content = bytearray(f_orig.read())
-        # Modifica un byte nel ciphertext (dopo salt, IV e HMAC tag)
-        tamper_index = SALT_BYTES_LENGTH + IV_BYTES_LENGTH_CBC + HMAC_TAG_LENGTH_SHA256 + 5 # Cambia il 5° byte del ciphertext
-        if len(original_content) > tamper_index:
-            original_content[tamper_index] ^= 0x01 # Flippa un bit
-            with open(temp_tampered_file, 'wb') as f_tamper:
-                f_tamper.write(original_content)
-            print(f"File '{temp_tampered_file}' creato con manomissione.")
+    temp_tampered_file = os.path.join(OUTPUT_DIR, "EtM_output_tampered.enc")
+    if encrypted_file_path_etm and os.path.exists(encrypted_file_path_etm): # Esegui il test solo se il file criptato esiste
+        try:
+            with open(encrypted_file_path_etm, 'rb') as f_orig:
+                original_content = bytearray(f_orig.read())
+            # Modifica un byte nel ciphertext (dopo salt, IV e HMAC tag)
+            tamper_index = SALT_BYTES_LENGTH + IV_BYTES_LENGTH_CBC + HMAC_TAG_LENGTH_SHA256 + 5 # Cambia il 5° byte del ciphertext
+            if len(original_content) > tamper_index:
+                original_content[tamper_index] ^= 0x01 # Flippa un bit
+                with open(temp_tampered_file, 'wb') as f_tamper:
+                    f_tamper.write(original_content)
+                print(f"File '{temp_tampered_file}' creato con manomissione.")
 
-            decrypt_file_EtM(
-                file_path=temp_tampered_file,
-                output_file_path="docs/EtM_output_decrypt_tampered.txt",
-                password=user_password_etm,
-                associated_data=file_metadata_aad_etm
-            )
-        else:
-            print("File troppo corto per simulare manomissione nel ciphertext.")
-    except InvalidTag:
-        print("TEST SUPERATO: Decriptaggio EtM con file manomesso ha correttamente sollevato InvalidTag (dovuto a HMAC non corrispondente).")
-    except Exception as e:
-        print(f"TEST FALLITO: Decriptaggio EtM con file manomesso ha sollevato un errore inatteso: {e}.")
-    finally:
-        if os.path.exists(temp_tampered_file):
-            os.remove(temp_tampered_file) # Pulisci il file temporaneo
+                decrypt_file_EtM(
+                    file_path=temp_tampered_file,
+                    password=user_password_etm,
+                    associated_data=file_metadata_aad_etm
+                )
+            else:
+                print("File troppo corto per simulare manomissione nel ciphertext.")
+        except InvalidTag:
+            print("TEST SUPERATO: Decriptaggio EtM con file manomesso ha correttamente sollevato InvalidTag (dovuto a HMAC non corrispondente).")
+        except Exception as e:
+            print(f"TEST FALLITO: Decriptaggio EtM con file manomesso ha sollevato un errore inatteso: {e}.")
+        finally:
+            if os.path.exists(temp_tampered_file):
+                os.remove(temp_tampered_file) # Pulisci il file temporaneo
+    else:
+        print("TEST SALTATO: File criptato non disponibile per il test di manomissione.")
