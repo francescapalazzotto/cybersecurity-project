@@ -1,8 +1,0 @@
-Questo è il contenuto del mio documento sensibile per il test EtM.
-Queste informazioni devono rimanere confidenziali e integre.
-A differenza di GCM, qui usiamo AES-CBC + HMAC-SHA256.
-Questo testo è un po' più lungo per testare il padding correttamente.
-Questo testo è un po' più lungo per testare il padding correttamente.
-Questo testo è un po' più lungo per testare il padding correttamente.
-Questo testo è un po' più lungo per testare il padding correttamente.
-Questo testo è un po' più lungo per testare il padding correttamente.
