@@ -1,4 +1,4 @@
-Come eseguire il backend:
+Come eseguire il backend (bisogna spostarsi nella directory api):
 
     uvicorn main:app --reload
 

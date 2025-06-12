@@ -29,7 +29,9 @@ app.add_middleware(
 )
 
 # Cartella di output per i file criptati/decriptati sul server
-OUTPUT_DIR = "/docs"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+OUTPUT_DIR = os.path.join(BASE_DIR, "docs") # La cartella 'docs' sarà sempre relativa a main.py
+
 if not os.path.exists(OUTPUT_DIR):
     os.makedirs(OUTPUT_DIR)
 
@@ -42,7 +44,7 @@ async def encrypt_file(
     file: UploadFile = File(...),
     mode: str = Form(...),
     password: str = Form(...),
-    associated_data: str = Form(None), # AAD è opzionale
+    associated_data: str = Form(''), # AAD è opzionale: implementiamo di default stringa vuota
 ):
     """
     Cripta un file usando la modalità AES-GCM o EtM.
@@ -50,13 +52,9 @@ async def encrypt_file(
     try:
         plaintext_content = await file.read()
 
-        # Nel caso in cui non sia specificato, memorizziamo il nome del file per riutilizzarlo
-        # nella nomenclatura del file output
-        aad_to_use = None
-        if associated_data:
-            aad_to_use = associated_data.encode('utf-8')
-        elif file.filename: # Se non c'è AAD fornito ma c'è un nome file
-            aad_to_use = os.path.basename(file.filename).encode('utf-8')
+        # Gestione AAD: Se la stringa è vuota, passa None alla funzione crittografica.
+        # Altrimenti, codifica la stringa AAD in bytes.
+        aad_to_use = associated_data.encode('utf-8') if associated_data else None
         
         if mode.lower() == "gcm":
             encrypted_content = encrypt_data_GCM(plaintext_content, password, aad_to_use)
@@ -98,18 +96,18 @@ async def decrypt_file(
     file: UploadFile = File(...),
     mode: str = Form(...),
     password: str = Form(...),
-    associated_data: str = Form(None),
+    associated_data: str = Form(''),
 ):
     """
     Decripta un file criptato usando la modalità AES-GCM o EtM.
     """
     try:
         encrypted_content = await file.read()
-        aad_to_use = None
-        if associated_data:
-            aad_to_use = associated_data.encode('utf-8')
-        elif file.filename:
-            aad_to_use = os.path.basename(file.filename).encode('utf-8')
+        
+        # Gestione AAD: Se la stringa è vuota, passa None alla funzione crittografica.
+        # Altrimenti, codifica la stringa AAD in bytes.
+        # L'AAD qui DEVE corrispondere esattamente a quello usato durante la criptazione.
+        aad_to_use = associated_data.encode('utf-8') if associated_data else None
         
         if mode.lower() == "gcm":
             plaintext_content = decrypt_data_GCM(encrypted_content, password, aad_to_use)
