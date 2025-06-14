@@ -1,0 +1,58 @@
+/* Footer.css */
+
+.app-footer {
+  background-color: #222831; /* Stesso sfondo scuro dell'header */
+  color: #EEEEEE; /* Testo chiaro */
+  padding: 1.5rem 2rem; /* Spazio interno */
+  text-align: center; /* Centra il testo */
+  margin-top: auto; /* Spinge il footer in fondo alla pagina se il contenuto è scarso */
+  width: 100%;
+  box-shadow: 0 -4px 15px rgba(0, 0, 0, 0.4); /* Ombra sopra il footer */
+  box-sizing: border-box; /* Include padding e border nella larghezza */
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column; /* Impila le informazioni verticalmente */
+  gap: 0.8rem; /* Spazio tra le righe di testo */
+  max-width: 900px; /* Limita la larghezza del contenuto */
+  margin: 0 auto; /* Centra il contenuto nel footer */
+}
+
+.footer-content p {
+  margin: 0; /* Rimuove i margini predefiniti dei paragrafi */
+  font-size: 0.95rem; /* Dimensione del testo leggermente più piccola */
+  font-weight: 400;
+  color: #DDDDDD; /* Colore del testo leggermente attenuato */
+  display: flex; /* Permette allineamento icona/testo */
+  align-items: center;
+  justify-content: center; /* Centra icona e testo orizzontalmente */
+}
+
+.footer-icon {
+  margin-right: 0.7rem; /* Spazio tra icona e testo */
+  color: #00ADB5; /* Colore blu/verde acqua per le icone */
+  font-size: 1.1em; /* Leggermente più grande del testo */
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .app-footer {
+    padding: 1rem;
+  }
+
+  .footer-content {
+    gap: 0.6rem;
+  }
+
+  .footer-content p {
+    font-size: 0.85rem;
+    flex-direction: column; /* Impila icona e testo su schermi molto piccoli */
+    gap: 0.3rem; /* Spazio quando icona e testo sono impilati */
+  }
+
+  .footer-icon {
+    margin-right: 0; /* Rimuove margine a destra quando impilato */
+    margin-bottom: 0.2rem; /* Spazio sotto l'icona quando impilato */
+  }
+}

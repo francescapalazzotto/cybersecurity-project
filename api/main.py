@@ -44,52 +44,48 @@ async def encrypt_file(
     file: UploadFile = File(...),
     mode: str = Form(...),
     password: str = Form(...),
-    associated_data: str = Form(''), # AAD è opzionale: implementiamo di default stringa vuota
+    associated_data: str = Form(""), # Valore predefinito: stringa vuota
 ):
     """
     Cripta un file usando la modalità AES-GCM o EtM.
+    Se associated_data non è fornito (stringa vuota), viene passato None alle funzioni crittografiche.
+    Restituisce il file criptato come download.
     """
     try:
         plaintext_content = await file.read()
-
+        
         # Gestione AAD: Se la stringa è vuota, passa None alla funzione crittografica.
         # Altrimenti, codifica la stringa AAD in bytes.
-        aad_to_use = associated_data.encode('utf-8') if associated_data else None
-        
+        aad_to_use = associated_data.encode('utf-8') if associated_data else None 
+
         if mode.lower() == "gcm":
             encrypted_content = encrypt_data_GCM(plaintext_content, password, aad_to_use)
         elif mode.lower() == "etm":
             encrypted_content = encrypt_data_EtM(plaintext_content, password, aad_to_use)
         else:
-            raise HTTPException(
-                status_code=400, 
-                detail="Modalità di cifratura non valida. Scegli 'GCM' o 'EtM'.",
-            )
+            raise HTTPException(status_code=400, detail="Modalità di cifratura non valida. Scegli 'GCM' o 'EtM'.")
 
-        # Genera un nome per il file criptato
         original_filename_base = os.path.splitext(file.filename)[0] if file.filename else "encrypted_file"
         output_filename = f"{original_filename_base}_{mode.lower()}.enc"
         output_file_path = os.path.join(OUTPUT_DIR, output_filename)
 
+        # Salva il file criptato su disco
         with open(output_file_path, "wb") as f:
             f.write(encrypted_content)
 
-        return JSONResponse(
-            content={
-                "message": f"File criptato con successo. Salvato come {output_filename}",
-                "file_path": output_file_path,
-            },
-            status_code=200
+        # Restituisce il file criptato come download
+        return StreamingResponse(
+            io.BytesIO(encrypted_content), # Passa i dati binari
+            media_type="application/octet-stream", # Tipo MIME generico per download
+            headers={"Content-Disposition": f"attachment; filename={output_filename}"} # Header per forzare il download
         )
 
     except HTTPException as e:
         raise e
     except Exception as e:
         print(f"Errore durante la criptazione: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail=f"Errore interno del server durante la criptazione: {e}",
-        )
+        raise HTTPException(status_code=500, detail=f"Errore interno del server durante la criptazione: {e}")
+
 
 @app.post("/decrypt/")
 async def decrypt_file(

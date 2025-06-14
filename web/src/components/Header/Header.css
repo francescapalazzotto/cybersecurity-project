@@ -1,0 +1,106 @@
+/* Header.css */
+
+.app-header {
+  background-color: #222831; /* Sfondo scuro (nero carbone) */
+  color: #EEEEEE; /* Testo grigio chiaro */
+  padding: 1rem 2rem; /* Spazio interno */
+  display: flex;
+  justify-content: space-between; /* Sposta logo a sinistra e nav a destra */
+  align-items: center; /* Allinea verticalmente al centro */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4); /* Ombra sotto l'header */
+  width: 100%; /* Larghezza piena */
+  position: sticky; /* Rende l'header appiccicoso in alto allo scroll */
+  top: 0;
+  z-index: 1000; /* Assicura che sia sopra gli altri elementi */
+  box-sizing: border-box; /* Include padding e border nella larghezza */
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  font-size: 1.8rem; /* Dimensione del testo del logo */
+  font-weight: 700; /* Grassetto */
+  color: #00ADB5; /* Colore blu/verde acqua vibrante per il testo del logo */
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5); /* Piccola ombra per il testo */
+  user-select: none; /* Impedisce la selezione del testo */
+}
+
+.logo-icon {
+  margin-right: 0.5rem; /* Spazio tra icona e testo del logo */
+  color: #00BF63; /* Verde brillante per l'icona del logo */
+  font-size: 1.5em; /* Icona più grande rispetto al testo adiacente */
+}
+
+.main-nav ul {
+  list-style: none; /* Rimuove i pallini della lista */
+  margin: 0;
+  padding: 0;
+  display: flex; /* Layout orizzontale per le voci di navigazione */
+  gap: 2rem; /* Spazio tra ogni voce di navigazione */
+}
+
+.main-nav li a {
+  color: #EEEEEE; /* Colore predefinito dei link (grigio chiaro) */
+  text-decoration: none; /* Rimuove la sottolineatura */
+  font-size: 1.1rem; /* Dimensione del testo dei link */
+  font-weight: 500;
+  padding: 0.5rem 1rem; /* Spazio interno dei link */
+  border-radius: 6px; /* Angoli arrotondati per i link */
+  transition: all 0.3s ease; /* Transizione fluida per hover/focus */
+  display: flex; /* Permette di allineare icona e testo */
+  align-items: center; /* Allinea verticalmente icona e testo */
+}
+
+.main-nav li a:hover {
+  background-color: #00ADB5; /* Sfondo blu/verde acqua al passaggio del mouse */
+  color: #222831; /* Testo scuro su sfondo blu/verde acqua */
+  transform: translateY(-2px); /* Leggero effetto di sollevamento */
+  box-shadow: 0 4px 10px rgba(0, 173, 181, 0.3); /* Ombra con colore blu/verde acqua */
+}
+
+.main-nav li a.active { /* Stile per il link attivo (se gestisci lo stato "attivo" nel componente genitore) */
+  background-color: #00BF63; /* Sfondo verde brillante per il link attivo */
+  color: #222831; /* Testo scuro su sfondo verde */
+  font-weight: 700;
+  box-shadow: 0 4px 10px rgba(0, 191, 99, 0.4);
+}
+
+.nav-icon {
+  margin-right: 0.5rem; /* Spazio tra icona e testo del link */
+  font-size: 1.1em; /* Dimensione dell'icona relativa al testo del link */
+}
+
+/* Design Responsivo per Dispositivi Mobili (max-width 768px) */
+@media (max-width: 768px) {
+  .app-header {
+    flex-direction: column; /* Impila gli elementi verticalmente */
+    align-items: flex-start; /* Allinea a sinistra */
+    padding: 1rem; /* Meno padding */
+  }
+
+  .logo {
+    margin-bottom: 1rem; /* Spazio sotto il logo */
+    font-size: 1.5rem;
+  }
+
+  .main-nav {
+    width: 100%; /* Larghezza piena per la nav */
+  }
+
+  .main-nav ul {
+    flex-direction: column; /* Impila le voci di navigazione */
+    gap: 0.5rem; /* Meno spazio tra le voci impilate */
+    width: 100%;
+  }
+
+  .main-nav li {
+    width: 100%;
+  }
+
+  .main-nav li a {
+    width: calc(100% - 2rem); /* Aggiusta la larghezza per il padding */
+    justify-content: center; /* Centra il testo e l'icona sui dispositivi mobili */
+    padding: 0.8rem 1rem;
+    font-size: 1rem;
+  }
+}

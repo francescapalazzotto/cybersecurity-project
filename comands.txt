@@ -2,5 +2,9 @@ Come eseguire il backend (bisogna spostarsi nella directory api):
 
     uvicorn main:app --reload
 
+Come eseguire il frontend (bisogna spostarsi nella directory web):
+
+    npm run start
+
 Server accessibile su: http://127.0.0.1:8000
 Per la documentazione Swagger UI: http://127.0.0.1:8000/docs

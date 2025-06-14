@@ -1,0 +1,107 @@
+/* HeroSection.css */
+
+.hero-section {
+  width: 100%;
+  height: 700px; /* Altezza fissa per la sezione hero */
+  background-size: cover; /* L'immagine copre l'intera area */
+  background-position: center; /* Centra l'immagine */
+  background-repeat: no-repeat; /* Non ripetere l'immagine */
+  display: flex;
+  align-items: center; /* Centra verticalmente il contenuto */
+  justify-content: center; /* Centra orizzontalmente il contenuto */
+  position: relative;
+  overflow: hidden; /* Nasconde l'overflow dell'immagine */
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Ombra pronunciata */
+  background-image: url('C:\Users\palaz\OneDrive\Desktop\cybersecurity-project\web\public\neural_network.jpeg');
+}
+
+.hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(34, 40, 49, 0.7); /* Overlay scuro semi-trasparente (nero carbone) */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 2rem; /* Padding interno */
+}
+
+.hero-content {
+  max-width: 800px; /* Larghezza massima del contenuto testuale */
+  color: #EEEEEE; /* Testo chiaro */
+}
+
+.platform-title {
+  font-size: 3.5rem; /* Grande dimensione per il titolo */
+  font-weight: 800; /* Extra grassetto */
+  margin-bottom: 1.5rem;
+  color: #00BF63; /* Verde brillante per il titolo */
+  text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7); /* Ombra per il testo per risaltare */
+  display: flex; /* Per allineare icona e testo */
+  align-items: center;
+  justify-content: center;
+  gap: 15px; /* Spazio tra icona e testo */
+}
+
+.shield-icon {
+  font-size: 1.2em; /* Icona leggermente più grande del testo */
+  color: #00ADB5; /* Blu/verde acqua per l'icona */
+}
+
+.platform-description {
+  font-size: 1.2rem; /* Dimensione del testo della descrizione */
+  line-height: 1.6; /* Interlinea per una migliore leggibilità */
+  color: #DDDDDD; /* Colore leggermente più scuro del titolo */
+  max-width: 700px; /* Limita la larghezza della descrizione */
+  margin: 0 auto; /* Centra la descrizione */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .hero-section {
+    height: 400px;
+  }
+  .platform-title {
+    font-size: 3rem;
+  }
+  .platform-description {
+    font-size: 1.1rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-section {
+    height: 350px;
+    padding: 1rem;
+  }
+  .hero-overlay {
+    padding: 1.5rem;
+  }
+  .platform-title {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+  }
+  .shield-icon {
+    font-size: 1.1em;
+  }
+  .platform-description {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-section {
+    height: 300px;
+  }
+  .platform-title {
+    font-size: 2rem;
+    gap: 10px;
+  }
+  .platform-description {
+    font-size: 0.9rem;
+  }
+}
