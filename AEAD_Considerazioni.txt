@@ -1,0 +1,115 @@
+﻿Questo documento illustra la progettazione e l'implementazione della piattaforma 
+"AEAD Platform", un'applicazione web sviluppata per dimostrare e confrontare due
+modalità di Cifratura Autenticata con Dati Associati (Authenticated Encryption 
+with Associated Data - AEAD): Galois/Counter Mode (GCM) e il costrutto 
+Encrypt-then-MAC (EtM). L'obiettivo principale è fornire un'interfaccia 
+intuitiva per la cifratura e decifratura di file, insieme a uno strumento 
+di benchmark per analizzare le differenze prestazionali tra le due modalità.
+
+Introduzione e Motivazioni
+In un'era digitale in cui la sicurezza dei dati è paramount, la cifratura non è 
+più sufficiente se non accompagnata da robuste garanzie di integrità e autenticità. 
+La semplice cifratura (che assicura la confidenzialità) protegge i dati da 
+accessi non autorizzati, ma non impedisce a un attaccante di manipolare il 
+testo cifrato in modo che, una volta decifrato, produca un risultato dannoso o 
+inaspettato. Questo è il problema della malleabilità. L'Authenticated Encryption 
+(AE) risolve questo problema combinando la confidenzialità con l'integrità dei 
+dati (garantendo che non siano stati alterati) e l'autenticità dell'origine 
+(verificando che provengano dalla fonte legittima).
+
+La "AEAD Platform" nasce dalla necessità di esplorare 
+e confrontare due approcci comuni all'AE:
+
+    1. AES-GCM: Una modalità di cifratura a blocchi (come AES) che fornisce 
+    AEAD in modo integrato. È ampiamente adottata e beneficia di ottimizzazioni 
+    hardware (es. istruzioni AES-NI).
+
+    2. Encrypt-then-MAC (EtM): Un costrutto generico che combina un cifrario 
+    (nel nostro caso AES-CBC) con un Message Authentication Code (MAC, 
+    nel nostro caso HMAC-SHA256). Il messaggio viene prima cifrato, e 
+    poi viene calcolato un MAC sul testo cifrato. Questa è la composizione 
+    più robusta per ottenere AEAD da primitive separate.
+
+L'applicazione è sviluppata con un backend in Python (FastAPI), che gestisce 
+le operazioni crittografiche, e un frontend in React, che offre un'interfaccia 
+utente amichevole. Le principali funzionalità includono:
+
+    - Cifratura e Decifratura di File: Permette agli utenti di selezionare file 
+    locali, fornire una password e un optional "Associated Data" (AAD), e 
+    scegliere tra GCM ed EtM. L'AAD è un dato non cifrato ma autenticato, 
+    utile per proteggere metadati.
+
+    - Gestione Chiavi e Nonce: La chiave di cifratura viene derivata in modo 
+    sicuro dalla password dell'utente tramite PBKDF2HMAC, mentre i Nonce (o IV) 
+    vengono generati casualmente per ogni operazione, prevenendo riusi critici.
+
+    - Benchmark di Performance: Misura i tempi di esecuzione per le operazioni 
+    di cifratura e decifratura per entrambe le modalità su diverse dimensioni 
+    di file, fornendo dati quantitativi per il confronto.
+
+Analisi dei Risultati del Benchmark
+Il benchmark è stato eseguito su diverse dimensioni di file, misurando i 
+tempi medi (in millisecondi) per le operazioni di cifratura e decifratura 
+per AES-GCM e EtM.
+Dall'analisi dei dati, emergono diverse osservazioni chiave che confermano 
+le aspettative teoriche sulle due modalità:
+
+    1. GCM Generalmente Più Veloce: Per la maggior parte delle dimensioni 
+    dei file, AES-GCM mostra tempi di criptazione e decriptazione inferiori 
+    rispetto a EtM. Questo è particolarmente evidente per le dimensioni 
+    intermedie (es. 10KB, 1024KB). Questo comportamento è in linea con 
+    la natura di GCM come modalità di AEAD integrata, che può eseguire 
+    operazioni di cifratura e autenticazione in modo più efficiente, spesso 
+    beneficiando di parallelizzazione e istruzioni hardware dedicate 
+    (come AES-NI presenti nella maggior parte delle CPU moderne).
+
+    2. EtM: Costo del Doppio Passaggio: EtM (Encrypt-then-MAC) richiede 
+    intrinsecamente due passaggi sequenziali: prima la cifratura del 
+    messaggio con AES-CBC e poi il calcolo dell'HMAC sul testo cifrato. 
+    Questa natura sequenziale introduce un overhead di performance che 
+    si riflette nei tempi più elevati rispetto a GCM, che esegue le due 
+    operazioni in un unico flusso ottimizzato. Si nota che per i file più grandi 
+    (100MB), le differenze assolute aumentano, ma l'ordine di grandezza rimane lo stesso.
+
+    3. Anomalie o Varianze: È interessante notare alcune varianze. 
+    Ad esempio, per 1KB, EtM è inizialmente un po' più lento, ma per 10KB e 100KB, 
+    la differenza aumenta significativamente. Per 1024KB (1MB), i tempi di 
+    GCM sono particolarmente bassi, suggerendo che le ottimizzazioni di 
+    sistema o cache potrebbero entrare in gioco in modo più favorevole per 
+    GCM a quella dimensione. Per 10240KB (10MB), GCM mantiene un vantaggio 
+    seppur con un'inversione nella fase di decriptazione rispetto alla criptazione, 
+    mentre per 102400KB (100MB), entrambe le modalità mostrano un aumento 
+    significativo dei tempi, ma GCM rimane marginalmente più veloce nella 
+    decriptazione. Queste variazioni possono dipendere da fattori come:
+        - Overhead di I/O: Per file molto grandi, la lettura e scrittura 
+        da disco (anche se minimizzate qui operando in memoria) possono 
+        dominare il tempo rispetto all'operazione crittografica stessa.
+
+        - Ottimizzazioni della Libreria: L'implementazione specifica della 
+        libreria cryptography.io (che è altamente ottimizzata in C) e l'interazione 
+        con il sistema operativo possono influenzare i tempi a diverse scale.
+
+        - Carico del Sistema: Anche se eseguito in un ambiente di benchmark, 
+        altri processi in background potrebbero introdurre piccole variazioni.
+
+    4. Implicazioni di Sicurezza (A_Priori): Sebbene il benchmark si concentri 
+    sulle performance, i paper analizzati (come Bellare e Namprempre) sottolineano 
+    che EtM è la composizione generica più sicura tra Encrypt-and-MAC e 
+    MAC-then-Encrypt, offrendo protezione contro gli attacchi a testo cifrato 
+    scelto (CCA). GCM, essendo una modalità integrata e standardizzata (NIST), 
+    è considerata robusta e sicura quando implementata correttamente, 
+    in particolare per la gestione dei Nonce (il loro riuso è catastrofico 
+    per entrambi, ma più esplicito per GCM in termini di compromissione della confidenzialità).
+
+Conclusione
+La "AEAD Platform" dimostra efficacemente il funzionamento di GCM ed EtM, 
+offrendo uno strumento pratico per cifrare e decifrare file. I risultati 
+del benchmark confermano la tendenza di GCM a essere generalmente più performante 
+grazie alla sua architettura integrata e alla parallelizzabilità. 
+Nonostante ciò, EtM rimane una scelta valida e sicura per ottenere cifratura 
+autenticata tramite composizione di primitive, soprattutto quando la velocità 
+estrema non è il fattore più critico.
+Questo progetto non solo fornisce un'applicazione funzionale, 
+ma serve anche come un'ottima base per comprendere le implicazioni pratiche e 
+teoriche della cifratura autenticata, un pilastro fondamentale 
+della sicurezza informatica moderna.
