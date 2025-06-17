@@ -2,6 +2,7 @@ import React from 'react';
 import './Body.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faShieldHalved } from '@fortawesome/free-solid-svg-icons'; // Icona per la sicurezza
+import neuralNetworkImage from '../../images/neural_network.jpeg';
 
 /**
  * Componente Body per presentare la piattaforma AEAD.
@@ -10,7 +11,14 @@ import { faShieldHalved } from '@fortawesome/free-solid-svg-icons'; // Icona per
  */
 function Body({ imageUrl }) {
   return (
-    <section className="hero-section">
+    <section
+      className="hero-section" 
+      style={{
+        backgroundImage: `url(${neuralNetworkImage})`,
+        backgroundSize: 'cover',       
+        backgroundPosition: 'center', 
+        backgroundRepeat: 'no-repeat', 
+      }}>
       <div className="hero-overlay">
         <div className="hero-content">
           <h1 className="platform-title">

@@ -8,3 +8,5 @@ Come eseguire il frontend (bisogna spostarsi nella directory web):
 
 Server accessibile su: http://127.0.0.1:8000
 Per la documentazione Swagger UI: http://127.0.0.1:8000/docs
+Per installare le librerie: spostarsi in dir api ed eseguire 
+    pip install -r requirements.txt

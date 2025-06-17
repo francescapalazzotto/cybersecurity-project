@@ -3,16 +3,12 @@
 .hero-section {
   width: 100%;
   height: 700px; /* Altezza fissa per la sezione hero */
-  background-size: cover; /* L'immagine copre l'intera area */
-  background-position: center; /* Centra l'immagine */
-  background-repeat: no-repeat; /* Non ripetere l'immagine */
   display: flex;
   align-items: center; /* Centra verticalmente il contenuto */
   justify-content: center; /* Centra orizzontalmente il contenuto */
   position: relative;
   overflow: hidden; /* Nasconde l'overflow dell'immagine */
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3); /* Ombra pronunciata */
-  background-image: url('C:\Users\palaz\OneDrive\Desktop\cybersecurity-project\web\public\neural_network.jpeg');
 }
 
 .hero-overlay {
