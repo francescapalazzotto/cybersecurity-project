@@ -2,31 +2,40 @@ import Col from 'react-bootstrap/esm/Col';
 import Form from 'react-bootstrap/Form';
 
 function FormEncrypt({
-    stateEncrypt,
-    onChange,
+  stateEncrypt,
+  onChange,
 }) {
   return (
     <Form>
       <Form.Group className="mb-3">
         <Form.Label>
-            Carica File
+          Carica File
         </Form.Label>
         <Form.Control
-            type="file"
-            name='file'
-            onChange={(event) => onChange('encrypt', event)}
-            />
+          type="file"
+          name='file'
+          onChange={(event) => onChange('encrypt', event)}
+        />
         <Form.Label>
-            Scegli Modalità di Criptazione
+          Inserisci Dati Associati
+        </Form.Label>
+        <Form.Control
+          type='text'
+          name='associated_data'
+          value={stateEncrypt?.associated_data}
+          onChange={(event) => onChange('encrypt', event)}
+        />
+        <Form.Label>
+          Scegli Modalità di Criptazione
         </Form.Label>
         <Form.Select
-            name='mode'
-            placeholder='Seleziona una modalità'
-            onChange={(selOption) => onChange('encrypt', selOption )}
+          name='mode'
+          placeholder='Seleziona una modalità'
+          onChange={(selOption) => onChange('encrypt', selOption )}
         >
-            <option value="" disabled>Seleziona una modalità</option>
-            <option value="gcm">Galois/Counter Mode (GCM) </option>
-            <option value="etm">Encrypt-then-MAC (EtM)</option>
+          <option value="" disabled>Seleziona una modalità</option>
+          <option value="gcm">Galois/Counter Mode (GCM) </option>
+          <option value="etm">Encrypt-then-MAC (EtM)</option>
         </Form.Select>
         <Form.Label>
           Inserisci Password

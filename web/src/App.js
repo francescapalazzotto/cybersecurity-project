@@ -68,8 +68,7 @@ function App() {
             stateDecrypt.mode,
             stateDecrypt.associated_data
         );
-        console.log('result', result);
-        alert(`Decriptazione riuscita: ${result.message}`);
+        alert(`Decriptazione riuscita: ${result}`);
         setModalDecrypt(false); // Chiudi la modale al successo
         // Pulisci il form se necessario
         setStateDecrypt({
@@ -130,7 +129,8 @@ function App() {
       }));
     }
   };
-
+  console.log('DEC', stateDecrypt);
+  console.log('ENC', stateEncrypt);
   return (
     <>
       <div className="App">
